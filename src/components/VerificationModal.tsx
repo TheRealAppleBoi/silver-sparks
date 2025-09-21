@@ -1,7 +1,7 @@
 'use client'
 
-import { useState, useRef } from 'react'
-import { Mic, MicOff, Send, Loader2 } from 'lucide-react'
+import { useState } from 'react'
+import { Send, Loader2 } from 'lucide-react'
 
 interface VerificationModalProps {
   isOpen: boolean
@@ -10,77 +10,32 @@ interface VerificationModalProps {
 }
 
 export default function VerificationModal({ isOpen, onClose, onVerified }: VerificationModalProps) {
-  const [step, setStep] = useState<'welcome' | 'recording' | 'processing' | 'text' | 'success' | 'error'>('welcome')
-  const [isRecording, setIsRecording] = useState(false)
-  const [audioBlob, setAudioBlob] = useState<Blob | null>(null)
+  const [step, setStep] = useState<'welcome' | 'text' | 'processing' | 'success' | 'error'>('welcome')
   const [textInput, setTextInput] = useState('')
   const [error, setError] = useState('')
   const [retryCount, setRetryCount] = useState(0)
-  
-  const mediaRecorderRef = useRef<MediaRecorder | null>(null)
-  const audioChunksRef = useRef<Blob[]>([])
 
-  const startRecording = async () => {
-    try {
-      const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
-      const mediaRecorder = new MediaRecorder(stream)
-      mediaRecorderRef.current = mediaRecorder
-      audioChunksRef.current = []
-
-      mediaRecorder.ondataavailable = (event) => {
-        if (event.data.size > 0) {
-          audioChunksRef.current.push(event.data)
-        }
-      }
-
-      mediaRecorder.onstop = () => {
-        const audioBlob = new Blob(audioChunksRef.current, { type: 'audio/webm' })
-        setAudioBlob(audioBlob)
-        stream.getTracks().forEach(track => track.stop())
-      }
-
-      mediaRecorder.start()
-      setIsRecording(true)
-      setStep('recording')
-
-      // Auto-stop after 15 seconds
-      setTimeout(() => {
-        if (mediaRecorder.state === 'recording') {
-          mediaRecorder.stop()
-          setIsRecording(false)
-          setStep('processing')
-          processAudio()
-        }
-      }, 15000)
-    } catch (err) {
-      console.error('Error accessing microphone:', err)
-      setError('Unable to access microphone. Please try the text option instead.')
-      setStep('text')
-    }
-  }
-
-  const stopRecording = () => {
-    if (mediaRecorderRef.current && mediaRecorderRef.current.state === 'recording') {
-      mediaRecorderRef.current.stop()
-      setIsRecording(false)
-      setStep('processing')
-      processAudio()
-    }
-  }
-
-  const processAudio = async () => {
+  const processText = async () => {
     try {
       const formData = new FormData()
-      if (audioBlob) {
-        formData.append('audio', audioBlob, 'audio.webm')
-      } else {
-        formData.append('text', textInput)
-      }
+      formData.append('text', textInput)
 
       const response = await fetch('/api/verify', {
         method: 'POST',
         body: formData,
       })
+
+      // Check if response is ok and content type is JSON
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`)
+      }
+
+      const contentType = response.headers.get('content-type')
+      if (!contentType || !contentType.includes('application/json')) {
+        const text = await response.text()
+        console.error('Non-JSON response:', text)
+        throw new Error('Server returned non-JSON response')
+      }
 
       const result = await response.json()
 
@@ -108,13 +63,12 @@ export default function VerificationModal({ isOpen, onClose, onVerified }: Verif
       return
     }
     setStep('processing')
-    processAudio()
+    processText()
   }
 
   const reset = () => {
     setStep('welcome')
     setError('')
-    setAudioBlob(null)
     setTextInput('')
     setRetryCount(0)
   }
@@ -129,9 +83,9 @@ export default function VerificationModal({ isOpen, onClose, onVerified }: Verif
           <div className="flex items-center justify-center mb-8">
             <div className="flex items-center space-x-4">
               <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-xl font-bold ${
-                step === 'welcome' || step === 'recording' || step === 'text' ? 'bg-blue-500' : 'bg-green-500'
+                step === 'welcome' || step === 'text' ? 'bg-blue-500' : 'bg-green-500'
               }`}>
-                {step === 'recording' ? <Mic className="w-6 h-6" /> : '1'}
+                1
               </div>
               <div className="w-16 h-1 bg-gray-300 rounded"></div>
               <div className={`w-12 h-12 rounded-full flex items-center justify-center text-white text-xl font-bold ${
@@ -156,46 +110,14 @@ export default function VerificationModal({ isOpen, onClose, onVerified }: Verif
               </h2>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
                 To keep this space safe for seniors, let's quickly confirm you're 65+. 
-                Just share a short voice note about your favorite memory—no video needed yet.
+                Please share a bit about your life experience below.
               </p>
-              <div className="space-y-4">
-                <button
-                  onClick={startRecording}
-                  className="w-full bg-blue-500 hover:bg-blue-600 text-white text-xl font-semibold py-4 px-8 rounded-2xl transition-colors duration-200 flex items-center justify-center space-x-3"
-                >
-                  <Mic className="w-6 h-6" />
-                  <span>Record Your Memory</span>
-                </button>
-                <button
-                  onClick={() => setStep('text')}
-                  className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-xl font-semibold py-4 px-8 rounded-2xl transition-colors duration-200"
-                >
-                  Use Text Instead
-                </button>
-              </div>
-            </div>
-          )}
-
-          {step === 'recording' && (
-            <div className="text-center">
-              <h2 className="text-3xl font-bold text-gray-800 mb-4 font-serif">
-                Recording... 🎤
-              </h2>
-              <p className="text-xl text-gray-600 mb-8">
-                Share your favorite memory or life experience. We'll stop recording automatically after 15 seconds.
-              </p>
-              <div className="flex items-center justify-center space-x-4">
-                <div className="w-20 h-20 bg-red-500 rounded-full flex items-center justify-center animate-pulse">
-                  <Mic className="w-10 h-10 text-white" />
-                </div>
-                <button
-                  onClick={stopRecording}
-                  className="bg-red-500 hover:bg-red-600 text-white text-xl font-semibold py-4 px-8 rounded-2xl transition-colors duration-200 flex items-center space-x-3"
-                >
-                  <MicOff className="w-6 h-6" />
-                  <span>Stop Recording</span>
-                </button>
-              </div>
+              <button
+                onClick={() => setStep('text')}
+                className="w-full bg-blue-500 hover:bg-blue-600 text-white text-xl font-semibold py-4 px-8 rounded-2xl transition-colors duration-200"
+              >
+                Continue with Text
+              </button>
             </div>
           )}
 
@@ -213,7 +135,7 @@ export default function VerificationModal({ isOpen, onClose, onVerified }: Verif
                 placeholder="Share your wisdom or a favorite memory..."
                 className="w-full h-32 p-4 border-2 border-gray-300 rounded-2xl text-lg resize-none focus:border-blue-500 focus:outline-none"
               />
-              <div className="mt-6 space-x-4">
+              <div className="mt-6">
                 <button
                   onClick={handleTextSubmit}
                   disabled={textInput.trim().length < 10}
@@ -221,12 +143,6 @@ export default function VerificationModal({ isOpen, onClose, onVerified }: Verif
                 >
                   <Send className="w-6 h-6" />
                   <span>Submit</span>
-                </button>
-                <button
-                  onClick={() => setStep('welcome')}
-                  className="bg-gray-100 hover:bg-gray-200 text-gray-700 text-xl font-semibold py-4 px-8 rounded-2xl transition-colors duration-200"
-                >
-                  Back to Voice
                 </button>
               </div>
             </div>

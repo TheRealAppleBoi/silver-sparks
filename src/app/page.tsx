@@ -10,11 +10,12 @@ export default function HomePage() {
   const [showVerification, setShowVerification] = useState(false)
   const [showHowItWorks, setShowHowItWorks] = useState(false)
   const [showPrivacy, setShowPrivacy] = useState(false)
-  const { isVerified, isLoading } = useVerification()
+  const [justVerified, setJustVerified] = useState(false)
+  const { isVerified, isLoading, setVerified } = useVerification()
   const router = useRouter()
 
   const handleStartJourney = () => {
-    if (isVerified) {
+    if (isVerified || justVerified) {
       router.push('/queue')
     } else {
       setShowVerification(true)
@@ -22,6 +23,9 @@ export default function HomePage() {
   }
 
   const handleVerified = (token: string, expiresAt: string) => {
+    // Update the verification state in the hook
+    setVerified(token, expiresAt)
+    setJustVerified(true)
     setShowVerification(false)
     // Redirect to queue after verification
     setTimeout(() => {
@@ -62,7 +66,7 @@ export default function HomePage() {
             onClick={handleStartJourney}
             className="bg-white text-blue-600 text-2xl font-bold py-6 px-12 rounded-3xl hover:bg-blue-50 transition-all duration-300 transform hover:scale-105 shadow-2xl"
           >
-            {isVerified ? 'Enter the Spark Room ✨' : 'Start Your Journey'}
+            {(isVerified || justVerified) ? 'Enter the Spark Room ✨' : 'Start Your Journey'}
           </button>
         </div>
       </div>

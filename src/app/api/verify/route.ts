@@ -1,28 +1,21 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { verifyAgeWithAudio, verifyAgeWithText } from '@/lib/openai'
+import { verifyAgeWithText } from '@/lib/openai'
 import { prisma } from '@/lib/prisma'
 import { generateToken } from '@/lib/utils'
 
 export async function POST(request: NextRequest) {
   try {
     const formData = await request.formData()
-    const audio = formData.get('audio') as File
     const text = formData.get('text') as string
 
-    let verificationResult
-
-    if (audio) {
-      // Convert File to Blob for OpenAI
-      const audioBlob = new Blob([await audio.arrayBuffer()], { type: audio.type })
-      verificationResult = await verifyAgeWithAudio(audioBlob)
-    } else if (text) {
-      verificationResult = await verifyAgeWithText(text)
-    } else {
+    if (!text) {
       return NextResponse.json(
-        { success: false, error: 'No audio or text provided' },
+        { success: false, error: 'No text provided' },
         { status: 400 }
       )
     }
+
+    const verificationResult = await verifyAgeWithText(text)
 
     if (verificationResult.verified) {
       // Generate token and store in database

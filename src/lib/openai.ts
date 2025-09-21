@@ -1,66 +1,44 @@
-import OpenAI from 'openai'
-
-export const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-})
-
-export async function verifyAgeWithAudio(audioBlob: Blob): Promise<{ verified: boolean; reason: string }> {
-  try {
-    // Convert blob to base64
-    const arrayBuffer = await audioBlob.arrayBuffer()
-    const base64Audio = Buffer.from(arrayBuffer).toString('base64')
-    
-    // Transcribe audio using Whisper
-    const transcription = await openai.audio.transcriptions.create({
-      file: new File([audioBlob], 'audio.webm', { type: 'audio/webm' }),
-      model: 'whisper-1',
-    })
-    
-    // Analyze with GPT-4
-    const analysis = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'system',
-          content: 'Analyze this transcript for age indicators: speech patterns, vocabulary, life references. Estimate if speaker is likely 65+ (yes/no with confidence score >80%). Respond JSON: {verified: boolean, reason: string (gentle, encouraging)}'
-        },
-        {
-          role: 'user',
-          content: transcription.text
-        }
-      ],
-      temperature: 0.3,
-    })
-    
-    const result = JSON.parse(analysis.choices[0].message.content || '{}')
-    return result
-  } catch (error) {
-    console.error('OpenAI verification error:', error)
-    return { verified: false, reason: 'Oops, let\'s try that again—technology can be tricky!' }
-  }
-}
-
+// Simple text-based age verification without OpenAI
 export async function verifyAgeWithText(text: string): Promise<{ verified: boolean; reason: string }> {
   try {
-    const analysis = await openai.chat.completions.create({
-      model: 'gpt-4o',
-      messages: [
-        {
-          role: 'system',
-          content: 'Analyze this text for age indicators: speech patterns, vocabulary, life references. Estimate if speaker is likely 65+ (yes/no with confidence score >80%). Respond JSON: {verified: boolean, reason: string (gentle, encouraging)}'
-        },
-        {
-          role: 'user',
-          content: text
-        }
-      ],
-      temperature: 0.3,
-    })
+    // Simple keyword-based verification for demo purposes
+    const ageKeywords = [
+      'retired', 'retirement', 'grandchildren', 'grandkids', 'pension', 'social security',
+      'senior', 'elderly', '65', '70', '80', '90', 'years old', 'decades', 'generation',
+      'wisdom', 'experience', 'life lessons', 'back in my day', 'when I was young',
+      'nursing home', 'assisted living', 'medicare', 'medicaid', 'aarp'
+    ]
     
-    const result = JSON.parse(analysis.choices[0].message.content || '{}')
-    return result
+    const textLower = text.toLowerCase()
+    const keywordMatches = ageKeywords.filter(keyword => textLower.includes(keyword))
+    
+    // Simple scoring system
+    let score = 0
+    if (textLower.includes('retired') || textLower.includes('retirement')) score += 3
+    if (textLower.includes('grandchildren') || textLower.includes('grandkids')) score += 2
+    if (/\b(6[5-9]|[7-9][0-9])\b/.test(textLower)) score += 4 // Age numbers 65-99
+    if (textLower.includes('years old')) score += 2
+    if (keywordMatches.length > 0) score += keywordMatches.length
+    
+    // Also check for length and maturity indicators
+    if (text.length > 50) score += 1
+    if (textLower.includes('wisdom') || textLower.includes('experience')) score += 2
+    
+    const verified = score >= 3
+    
+    if (verified) {
+      return {
+        verified: true,
+        reason: 'Thank you for sharing your experience! Welcome to Silver Sparks! ✨'
+      }
+    } else {
+      return {
+        verified: false,
+        reason: 'Please share more about your life experience to help us verify your age. Tell us about retirement, grandchildren, or your years of wisdom!'
+      }
+    }
   } catch (error) {
-    console.error('OpenAI verification error:', error)
+    console.error('Verification error:', error)
     return { verified: false, reason: 'Oops, let\'s try that again—technology can be tricky!' }
   }
 }

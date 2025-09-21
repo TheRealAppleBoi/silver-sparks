@@ -8,14 +8,23 @@ export function useSocket() {
   const [isConnected, setIsConnected] = useState(false)
 
   useEffect(() => {
-    const newSocket = io(process.env.NODE_ENV === 'production' ? '' : 'http://localhost:3000')
+    // Use the current window location for socket connection
+    const socketUrl = process.env.NODE_ENV === 'production' ? '' : window.location.origin
+    console.log('Connecting to socket at:', socketUrl)
+    const newSocket = io(socketUrl)
     
     newSocket.on('connect', () => {
+      console.log('Socket connected!')
       setIsConnected(true)
     })
 
     newSocket.on('disconnect', () => {
+      console.log('Socket disconnected!')
       setIsConnected(false)
+    })
+
+    newSocket.on('connect_error', (error) => {
+      console.error('Socket connection error:', error)
     })
 
     setSocket(newSocket)
