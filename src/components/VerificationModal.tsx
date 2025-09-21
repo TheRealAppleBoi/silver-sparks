@@ -109,7 +109,7 @@ export default function VerificationModal({ isOpen, onClose, onVerified }: Verif
                 Welcome to Silver Sparks! ✨
               </h2>
               <p className="text-xl text-gray-600 mb-8 leading-relaxed">
-                To keep this space safe for seniors, let's quickly confirm you're 65+. 
+                To keep this space safe for seniors, let&apos;s quickly confirm you&apos;re 65+. 
                 Please share a bit about your life experience below.
               </p>
               <button
@@ -127,7 +127,7 @@ export default function VerificationModal({ isOpen, onClose, onVerified }: Verif
                 Tell Us About Yourself 📝
               </h2>
               <p className="text-xl text-gray-600 mb-8">
-                What's one thing you've learned in your 65+ years? Share a brief story or wisdom.
+                What&apos;s one thing you&apos;ve learned in your 65+ years? Share a brief story or wisdom.
               </p>
               <textarea
                 value={textInput}
@@ -168,7 +168,7 @@ export default function VerificationModal({ isOpen, onClose, onVerified }: Verif
                 Welcome to Silver Sparks! 🎉
               </h2>
               <p className="text-xl text-gray-600 mb-8">
-                You're all set! You can now enter the Spark Room and connect with fellow seniors.
+                You&apos;re all set! You can now enter the Spark Room and connect with fellow seniors.
               </p>
               <div className="w-20 h-20 bg-green-500 rounded-full flex items-center justify-center mx-auto animate-bounce">
                 <span className="text-3xl">✨</span>
@@ -179,12 +179,12 @@ export default function VerificationModal({ isOpen, onClose, onVerified }: Verif
           {step === 'error' && (
             <div className="text-center">
               <h2 className="text-3xl font-bold text-red-600 mb-4 font-serif">
-                {retryCount >= 3 ? 'Not Today' : 'Let\'s Try Again'}
+                {retryCount >= 3 ? 'Not Today' : 'Let&apos;s Try Again'}
               </h2>
               <p className="text-xl text-gray-600 mb-8">
                 {retryCount >= 3 
                   ? 'Not today—try tomorrow for freshness! Sometimes a fresh perspective helps.'
-                  : error || 'Hmm, that didn\'t quite match—want to try again with a different story?'
+                  : error || 'Hmm, that didn&apos;t quite match—want to try again with a different story?'
                 }
               </p>
               {retryCount < 3 && (

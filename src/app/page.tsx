@@ -177,7 +177,7 @@ export default function HomePage() {
           <div className="bg-white rounded-3xl shadow-2xl max-w-2xl w-full p-8">
             <h2 className="text-3xl font-bold text-gray-800 mb-6 font-serif">Privacy Promise</h2>
             <div className="space-y-4 text-lg text-gray-600">
-              <p>We don't store chats or identities—your peace of mind matters.</p>
+              <p>We don&apos;t store chats or identities—your peace of mind matters.</p>
               <p>• No chat history is saved</p>
               <p>• No personal information is collected</p>
               <p>• Verification tokens expire in 10 minutes</p>
