@@ -4,11 +4,13 @@ import { useState, useEffect } from 'react'
 import { Sparkles, Clock } from 'lucide-react'
 
 interface QueueSpinnerProps {
-  onMatched: (peerId: string) => void
-  onError: (error: string) => void
+  onMatched?: (peerId: string) => void
+  onError?: (error: string) => void
 }
 
-export default function QueueSpinner({ onMatched, onError }: QueueSpinnerProps) {
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+export default function QueueSpinner({ onMatched: _onMatched, onError: _onError }: QueueSpinnerProps) {
+  // Note: onMatched and onError are optional callback props that may be used in the future
   const [timeElapsed, setTimeElapsed] = useState(0)
   const [isPlaying, setIsPlaying] = useState(false)
 
@@ -58,7 +60,7 @@ export default function QueueSpinner({ onMatched, onError }: QueueSpinnerProps) 
             Finding a Fellow Spark... ✨
           </h1>
           <p className="text-xl text-gray-600 mb-6">
-            This usually takes under 30 seconds! We're matching you with another verified senior.
+            This usually takes under 30 seconds! We&apos;re matching you with another verified senior.
           </p>
         </div>
 

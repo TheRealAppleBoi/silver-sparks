@@ -94,7 +94,7 @@ export default function QueuePage() {
             Connecting...
           </h1>
           <p className="text-xl text-gray-600 mb-8">
-            Check your connection, dear friend. We're trying to connect you to the queue.
+            Check your connection, dear friend. We&apos;re trying to connect you to the queue.
           </p>
           <div className="w-16 h-16 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin mx-auto"></div>
         </div>

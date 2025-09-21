@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef } from 'react'
-import { Mic, MicOff, Video, VideoOff, Phone, PhoneOff, Share2 } from 'lucide-react'
+import { Mic, MicOff, Video, VideoOff, PhoneOff } from 'lucide-react'
 import { useLocalStream } from '@/hooks/useLocalStream'
 import { useSocket } from '@/hooks/useSocket'
 import SimplePeer from 'simple-peer'

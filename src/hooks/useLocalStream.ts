@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 
 export function useLocalStream() {
   const [stream, setStream] = useState<MediaStream | null>(null)
@@ -31,18 +31,18 @@ export function useLocalStream() {
     }
   }
 
-  const stopStream = () => {
+  const stopStream = useCallback(() => {
     if (stream) {
       stream.getTracks().forEach(track => track.stop())
       setStream(null)
     }
-  }
+  }, [stream])
 
   useEffect(() => {
     return () => {
       stopStream()
     }
-  }, [])
+  }, [stopStream])
 
   return {
     stream,
